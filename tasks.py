@@ -6,7 +6,7 @@ app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
 logger = get_task_logger(__name__)
 
 
-@app.task
+@app.task(name='celery_add')
 def celery_add(x, y):
     logger.info(f'Adding {x} + {y}')
     return x + y
