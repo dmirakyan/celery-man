@@ -5,6 +5,8 @@ from celery import Celery
 from celery.utils.log import get_task_logger
 from supabase import create_client, Client
 from uplink import Consumer, post, Body, json, Path
+from uplink.auth import BearerToken
+
 
 
 app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
@@ -40,14 +42,12 @@ def send_completion_email(email):
     mailcoach_client = get_mailcoach_client()
     mailcoach_client.send_email(
         body= {
-            "mail_name": "yourmove-photo-submission",
+            "mail_name": "yourmove-photos-complete",
             "subject": "Your AI photos are ready!",
-            "from": "support@yourmove.ai",
+            "from": "dmitri@yourmove.ai",
             "to": "support@yourmove.ai",
             "replacements": {
-                "topic": "This is a test" + email, 
-                "email": email,
-                "details": "AI photos would have been sent; woop woop" + email,
+                "email": email, 
             }
         }
     )
@@ -87,7 +87,7 @@ def push_outputs(email,tune_id):
     prompts_json = requests.get(f'https://api.astria.ai/tunes/{tune_id}/prompts', headers=astria_headers).json()
     astria_images = []
 
-    for item in prompts_json[0:5]:
+    for item in prompts_json[0:1]:
         if 'images' in item:
             astria_images.extend(item['images']) 
     for link in astria_images:
