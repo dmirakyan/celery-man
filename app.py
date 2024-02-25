@@ -18,3 +18,5 @@ def add_inputs():
     add.delay(x, y)
     flash("Your addition job has been submitted.")
     return redirect('/')
+
+
