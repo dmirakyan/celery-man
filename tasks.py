@@ -87,7 +87,7 @@ def push_outputs(email,tune_id):
     prompts_json = requests.get(f'https://api.astria.ai/tunes/{tune_id}/prompts', headers=astria_headers).json()
     astria_images = []
 
-    for item in prompts_json:
+    for item in prompts_json[0:5]:
         if 'images' in item:
             astria_images.extend(item['images']) 
     for link in astria_images:
