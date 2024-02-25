@@ -20,3 +20,5 @@ def add_inputs():
     return redirect('/')
 
 
+# words, what am i gonna do next. i will.
+
