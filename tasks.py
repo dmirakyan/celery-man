@@ -101,5 +101,5 @@ def push_outputs(email,tune_id):
                 print(f"Uploaded {filename} to Supabase bucket '{bucket_result}'")
             else:
                 print(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
-    
+
     send_completion_email(email)
