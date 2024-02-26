@@ -45,7 +45,7 @@ def send_completion_email(email):
             "mail_name": "yourmove-photos-complete",
             "subject": "Your AI photos are ready!",
             "from": "dmitri@yourmove.ai",
-            "to": "support@yourmove.ai",
+            "to": email,
             "replacements": {
                 "email": email, 
             }
