@@ -11,23 +11,24 @@ from firebase_config import db
 from firebase_admin import firestore
 
 
-# app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
-def get_redis_host():
-    redis_host = os.environ.get('REDIS_HOST', 'host.docker.internal')
-    if redis_host == 'host.docker.internal':
-        try:
-            # Attempt to resolve host.docker.internal
-            redis_host = socket.gethostbyname('host.docker.internal')
-        except socket.gaierror:
-            # If it fails, fallback to localhost
-            redis_host = 'localhost'
-    return redis_host
+# def get_redis_host():
+#     redis_host = os.environ.get('REDIS_HOST', 'host.docker.internal')
+#     if redis_host == 'host.docker.internal':
+#         try:
+#             # Attempt to resolve host.docker.internal
+#             redis_host = socket.gethostbyname('host.docker.internal')
+#         except socket.gaierror:
+#             # If it fails, fallback to localhost
+#             redis_host = 'localhost'
+#     return redis_host
 
-REDIS_HOST = get_redis_host()
-redis_url = f'redis://{REDIS_HOST}:6379/0'
+# REDIS_HOST = get_redis_host()
+# redis_url = f'redis://{REDIS_HOST}:6379/0'
 
 # celery_app = Celery('celery-man', broker=redis_url, backend=redis_url)
-app = Celery('celery-man', broker=redis_url)
+# app = Celery('celery-man', broker=redis_url)
+
+app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
 logger = get_task_logger(__name__)
 
 astria_key = 'sd_ua9DSqDPqkN3C5KEYstmhNM9wTHwQE'
