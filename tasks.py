@@ -1,4 +1,5 @@
 import os
+import socket
 import requests
 import supabase
 from celery import Celery
@@ -6,10 +7,27 @@ from celery.utils.log import get_task_logger
 from supabase import create_client, Client
 from uplink import Consumer, post, Body, json, Path
 from uplink.auth import BearerToken
+from firebase_config import db
+from firebase_admin import firestore
 
 
+# app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
+def get_redis_host():
+    redis_host = os.environ.get('REDIS_HOST', 'host.docker.internal')
+    if redis_host == 'host.docker.internal':
+        try:
+            # Attempt to resolve host.docker.internal
+            redis_host = socket.gethostbyname('host.docker.internal')
+        except socket.gaierror:
+            # If it fails, fallback to localhost
+            redis_host = 'localhost'
+    return redis_host
 
-app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
+REDIS_HOST = get_redis_host()
+redis_url = f'redis://{REDIS_HOST}:6379/0'
+
+# celery_app = Celery('celery-man', broker=redis_url, backend=redis_url)
+app = Celery('celery-man', broker=redis_url)
 logger = get_task_logger(__name__)
 
 astria_key = 'sd_ua9DSqDPqkN3C5KEYstmhNM9wTHwQE'
@@ -76,6 +94,23 @@ def celery_add(x, y):
     logger.info(f'Adding {x} + {y}')
     return x + y
 
+def update_output_urls_to_db(tune_id, email, output_urls):
+    ai_photos_ref = db.collection("aiPhotosRequests").where("email", "==", email).where("tuneId", "==", tune_id).limit(1)
+    docs = ai_photos_ref.get()
+    
+    if not docs:
+        print(f"No matching document found for email: {email} and tuneId: {tune_id}")
+        return
+    
+    doc = docs[0]
+    doc_ref = doc.reference
+    
+    doc_ref.update({
+        "status": "processed",
+        "outputUrls": output_urls,
+        "updatedAt": firestore.SERVER_TIMESTAMP
+    })
+
 @app.task(name='push_outputs')
 def push_outputs(email,tune_id):
     # this function takes a specified email and tune id. and then pushes it to supabase storage
@@ -86,6 +121,9 @@ def push_outputs(email,tune_id):
     bucket_result = email
     prompts_json = requests.get(f'https://api.astria.ai/tunes/{tune_id}/prompts', headers=astria_headers).json()
     astria_images = []
+    output_urls = []  # To store the URLs of uploaded images
+
+    folder_name = f"tune_{tune_id}"
 
     for item in prompts_json:
         if 'images' in item:
@@ -95,10 +133,16 @@ def push_outputs(email,tune_id):
         filename = link[-14:]
         response = requests.get(link)
         if response.status_code == 200:
+            file_path = f"{folder_name}/{filename}"
             # Upload the file content directly to Supabase Storage
-            upload_response = supabase.storage.from_(bucket_result).upload(filename, response.content)
+            upload_response = supabase.storage.from_(bucket_result).upload(file_path, response.content)
             if upload_response.status_code in [200, 201]:
-                print(f"Uploaded {filename} to Supabase bucket '{bucket_result}'")
+                logger.info(f"Uploaded {filename} to Supabase bucket '{bucket_result}'")
+                # Construct and store the public URL for the uploaded image
+                public_url = f"{s_url}/storage/v1/object/public/{bucket_result}/{file_path}"
+                output_urls.append(public_url)
             else:
-                print(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
+                logger.error(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
+    
+    update_output_urls_to_db(tune_id, email, output_urls)
     send_completion_email(email)
