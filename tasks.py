@@ -112,8 +112,8 @@ def update_output_urls_to_db(tune_id, email, output_urls):
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
 
-@app.task(name='push_outputs')
-def push_outputs(email,tune_id):
+@app.task(name='push_outputs_v2')
+def push_outputs_v2(email,tune_id):
     # this function takes a specified email and tune id. and then pushes it to supabase storage
     # supabase storage should already exist
     # but I can specify any id 
