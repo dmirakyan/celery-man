@@ -39,6 +39,7 @@ mailcoach_base_url = "https://yourmove.mailcoach.app"
 
 s_url: str = 'https://vptyvojtavfnwxsxrgkg.supabase.co'
 s_key: str = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwdHl2b2p0YXZmbnd4c3hyZ2tnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY3ODY0OTQ1MCwiZXhwIjoxOTk0MjI1NDUwfQ.98olPSl8POqZBlBZs86jfrLIGRNQFNlSXfvtPRa_lVY'
+
 supabase: Client = create_client(s_url, s_key)
 supabase_headers = {"apiKey": s_key,"Authorization": "Bearer " + s_key,"Content-Type": "application/json"}
 
@@ -61,9 +62,10 @@ def send_completion_email(email):
     mailcoach_client = get_mailcoach_client()
     mailcoach_client.send_email(
         body= {
-            "mail_name": "yourmove-photos-complete",
+            "mail_name": "yourmove-photos-complete-v2",
             "subject": "Your AI photos are ready!",
             "from": "dmitri@yourmove.ai",
+            "cc": "support@yourmove.ai",
             "to": email,
             "replacements": {
                 "email": email, 
@@ -71,6 +73,22 @@ def send_completion_email(email):
         }
     )
     return {}
+
+def send_completion_email_external(email):
+    mailcoach_client = get_mailcoach_client()
+    mailcoach_client.send_email(
+        body= {
+            "mail_name": "yourmove-photo-submission-external ",
+            "subject": "Your AI photos are ready!",
+            "from": "dmitri@yourmove.ai",
+            "cc": "support@yourmove.ai",
+            "to": email,
+        }
+    )
+    
+def send_completion_emails(email):
+    send_completion_email(email)
+    send_completion_email_external(email)
 
 def send_error_email(email):
     mailcoach_client = get_mailcoach_client()
@@ -146,4 +164,4 @@ def push_outputs_v2(email,tune_id):
                 logger.error(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
     
     update_output_urls_to_db(tune_id, email, output_urls)
-    send_completion_email(email)
+    send_completion_emails(email)
