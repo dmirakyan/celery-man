@@ -85,10 +85,11 @@ def send_completion_email_external(email):
             "to": email,
         }
     )
-    
-def send_completion_emails(email):
-    send_completion_email(email)
-    send_completion_email_external(email)
+
+# This was an insane function to create lol. Why not just call both. Weird level of abstraction.
+# def send_completion_emails(email):
+#     send_completion_email(email)
+#     send_completion_email_external(email)
 
 def send_error_email(email):
     mailcoach_client = get_mailcoach_client()
@@ -164,4 +165,4 @@ def push_outputs_v2(email,tune_id):
                 logger.error(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
     
     update_output_urls_to_db(tune_id, email, output_urls)
-    send_completion_emails(email)
+    send_completion_email(email)
