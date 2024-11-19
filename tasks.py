@@ -69,6 +69,7 @@ def send_completion_email(email):
             "to": email,
             "replacements": {
                 "email": email, 
+                "link": f"https://web.yourmove.ai/ai-photo?is_retrieve=true&email_ref={email}",
             }
         }
     )
