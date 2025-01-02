@@ -140,11 +140,24 @@ def push_outputs_v2(email,tune_id):
     logger.info(f'Pushing images for {email}, tune id = {tune_id}')
     # return x + y
     bucket_result = email
-    prompts_json = requests.get(f'https://api.astria.ai/tunes/{tune_id}/prompts', headers=astria_headers).json()
     astria_images = []
     output_urls = []  # To store the URLs of uploaded images
-
     folder_name = f"tune_{tune_id}"
+    all_prompts = []
+    offset = 0
+    PAGE_SIZE = 20
+    # Get all prompts first
+    while True:
+        prompts_json = requests.get(
+            f'https://api.astria.ai/tunes/{tune_id}/prompts?offset={offset}', 
+            headers=astria_headers
+        ).json()
+        if not prompts_json:
+            break
+        all_prompts.extend(prompts_json)
+        if len(prompts_json) < 20:
+            break
+        offset += PAGE_SIZE
 
     for item in prompts_json:
         if 'images' in item:
