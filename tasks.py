@@ -159,7 +159,7 @@ def push_outputs_v2(email,tune_id):
             break
         offset += PAGE_SIZE
 
-    for item in prompts_json:
+    for item in all_prompts:
         if 'images' in item:
             astria_images.extend(item['images']) 
 
