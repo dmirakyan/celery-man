@@ -28,7 +28,7 @@ from firebase_admin import firestore
 # celery_app = Celery('celery-man', broker=redis_url, backend=redis_url)
 # app = Celery('celery-man', broker=redis_url)
 
-app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
+app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"), broker_transport_options={"visibility_timeout": 14400})
 logger = get_task_logger(__name__)
 
 astria_key = 'sd_ua9DSqDPqkN3C5KEYstmhNM9wTHwQE'
@@ -132,7 +132,7 @@ def update_output_urls_to_db(tune_id, email, output_urls):
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
 
-@app.task(name='push_outputs_v2')
+@app.task(name='push_outputs_v2', acks_late=True)
 def push_outputs_v2(email,tune_id):
     # this function takes a specified email and tune id. and then pushes it to supabase storage
     # supabase storage should already exist
