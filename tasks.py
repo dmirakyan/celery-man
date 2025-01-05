@@ -164,9 +164,15 @@ def push_outputs_v2(email,tune_id):
             astria_images.extend(item['images']) 
 
     for link in astria_images:
-        filename = link[-14:]
-        response = requests.get(link)
-        if response.status_code == 200:
+        try:
+            filename = link[-14:]
+            response = requests.get(link)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch image from {link}: {e}")
+            continue
+        
+        try:
             file_path = f"{folder_name}/{filename}"
             # Upload the file content directly to Supabase Storage
             upload_response = supabase.storage.from_(bucket_result).upload(file_path, response.content)
@@ -176,7 +182,9 @@ def push_outputs_v2(email,tune_id):
                 public_url = f"{s_url}/storage/v1/object/public/{bucket_result}/{file_path}"
                 output_urls.append(public_url)
             else:
-                logger.error(f"Failed to upload {filename} to Supabase: {upload_response.status_code}")
-    
-    update_output_urls_to_db(tune_id, email, output_urls)
-    send_completion_email(email)
+                logger.error(f"Failed to upload {filename} to Supabase: {upload_response.status_code}: {upload_response.text}")
+        except Exception as e:
+            logger.error(f"Error uploading {filename} to Supabase: {e}")
+            
+        update_output_urls_to_db(tune_id, email, output_urls)
+        send_completion_email(email)
