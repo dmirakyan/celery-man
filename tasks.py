@@ -120,7 +120,7 @@ def update_output_urls_to_db(tune_id, email, output_urls):
     docs = ai_photos_ref.get()
     
     if not docs:
-        logger.error(f"No matching document found for email: {email} and tuneId: {tune_id}")
+        logger.error(f'No matching document found for email: {email} and tuneId: {tune_id}')
         return
     
     doc = docs[0]
@@ -131,7 +131,7 @@ def update_output_urls_to_db(tune_id, email, output_urls):
         "outputUrls": output_urls,
         "updatedAt": firestore.SERVER_TIMESTAMP
     })
-    logger.info(f"Updated output urls for email: {email} and tuneId: {tune_id}")
+    logger.info(f'Updated output urls for email: {email} and tuneId: {tune_id}')
 
 @app.task(name='push_outputs_v2', acks_late=True)
 def push_outputs_v2(email,tune_id):
