@@ -186,5 +186,5 @@ def push_outputs_v2(email,tune_id):
         except Exception as e:
             logger.error(f"Error uploading {filename} to Supabase: {e}")
             
-        update_output_urls_to_db(tune_id, email, output_urls)
-        send_completion_email(email)
+    update_output_urls_to_db(tune_id, email, output_urls)
+    send_completion_email(email)
